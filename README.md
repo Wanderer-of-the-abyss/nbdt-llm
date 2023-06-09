@@ -10,7 +10,7 @@ All notebooks were written in colab and run using a free-tier GPU environment. T
 Use the notebook [build_abstract_database.ipynb](notebooks/build_abstract_database.ipynb) and follow the instructions.
 You will need to create an account on [Pinecone](https://www.pinecone.io/) for this. The free tier allows the creation of 1 index.
 After creation of the account you can see your API key and ENV code in the API Keys section on your organization page. Those need to go in the notebook at -
-```
+```py
 PINECONE_API_KEY = ""
 PINECONE_ENV = ""
 ```
