@@ -2,6 +2,9 @@
 Repository for exploring recommendation using language model for NBDT journal. We use a finetuned version of [arazd/MIReAD](https://huggingface.co/arazd/MIReAD) trained on journal classification to create our embeddings. You can find the model on huggingface at [biodatlab/MIReAD-Neuro](https://huggingface.co/biodatlab/MIReAD-Neuro)
 
 ## Usage
+
+All notebooks were written in colab and run using a free-tier GPU environment. The code assumes that you are running in a GPU environment. Please change `.cuda()` or `'cuda'` to `.cpu()` or `'cpu'` as necessary if you do not have access to a GPU environment.
+
 ### Usage to build a pinecone database of your abstracts with our model
 
 Use the notebook [build_abstract_database.ipynb](notebooks/build_abstract_database.ipynb) and follow the instructions.
