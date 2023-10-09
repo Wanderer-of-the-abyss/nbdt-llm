@@ -9,13 +9,14 @@ import pandas as pd
 import os
 import warnings
 from streamlit_cookies_manager import EncryptedCookieManager
+from typing import Tuple, List, Any, Union
 
+# Initialize cookie manager and set up warnings
 cookies = EncryptedCookieManager(
     prefix="LUL/streamlit-cookies-manager/",
     password=os.environ.get("COOKIES_PASSWORD", "uDnda87,kGFdi&jh.kjsk/jk4DF369*^jhGks"),
 )
 warnings.filterwarnings("ignore")
-
 
 user_id = cookies.get('user_id')  # Attempt to retrieve the user ID cookie
 
@@ -23,9 +24,11 @@ if user_id is None:
     user_id = str(uuid.uuid4())  # Generate a random user ID
     cookies['user_id'] = user_id  # Set the cookie
 
-
+# Load article list
 with open("article_list.pkl", "rb") as articles:
     article_list = tuple(pickle.load(articles))
+
+# Set up constants
 INDEXES = ["miread_large", "miread_contrastive", "scibert_contrastive"]
 MODELS = [
     "biodatlab/MIReAD-Neuro-Large",
@@ -34,6 +37,8 @@ MODELS = [
 ]
 model_kwargs = {'device': 'cpu'}
 encode_kwargs = {'normalize_embeddings': False}
+
+# Initialize embeddings and vector databases
 faiss_embedders = [HuggingFaceEmbeddings(
     model_name=name,
     model_kwargs=model_kwargs,
@@ -42,25 +47,21 @@ faiss_embedders = [HuggingFaceEmbeddings(
 vecdbs = [FAISS.load_local(index_name, faiss_embedder)
           for index_name, faiss_embedder in zip(INDEXES, faiss_embedders)]
 
-
-def get_matchup():
+def get_matchup() -> Tuple[str, str]:
     choices = INDEXES
     left, right = random.sample(choices, 2)
     return left, right
 
-
-def get_comp(prompt):
+def get_comp(prompt: str) -> Tuple[List[Any], List[Any]]:
     left, right = get_matchup()
     left_output = inference(prompt, left)
     right_output = inference(prompt, right)
     return left_output, right_output
 
-
-def get_article():
+def get_article() -> str:
     return random.choice(article_list)
 
-
-def send_result(l_output, r_output, prompt, pick):
+def send_result(l_output: List[Any], r_output: List[Any], prompt: str, pick: str) -> str:
     with open('results.csv', 'a') as res_file:
         writer = csv.writer(res_file)
         row = [user_id, l_output, r_output, prompt, pick]
@@ -68,17 +69,14 @@ def send_result(l_output, r_output, prompt, pick):
     new_prompt = get_article()
     return new_prompt
 
-
-def get_matches(query, db_name="miread_contrastive"):
+def get_matches(query: str, db_name: str = "miread_contrastive") -> List[Tuple[Any, float]]:
     """
     Wrapper to call the similarity search on the required index
     """
-    matches = vecdbs[INDEXES.index(
-        db_name)].similarity_search_with_score(query, k=30)
+    matches = vecdbs[INDEXES.index(db_name)].similarity_search_with_score(query, k=30)
     return matches
 
-
-def inference(query, model="miread_contrastive"):
+def inference(query: str, model: str = "miread_contrastive") -> List[List[Union[int, float, str]]]:
     """
     This function processes information retrieved by the get_matches() function
     Returns - Streamlit output for the authors, abstracts, and journals tabular output
@@ -90,7 +88,8 @@ def inference(query, model="miread_contrastive"):
     min_score = min(scores)
     max_score = max(scores)
 
-    def normaliser(x): return round(1 - (x-min_score)/max_score, 3)
+    def normaliser(x: float) -> float:
+        return round(1 - (x-min_score)/max_score, 3)
 
     i = 1
     for match in matches:
@@ -102,11 +101,7 @@ def inference(query, model="miread_contrastive"):
         link = doc.metadata.get('link', 'None')
 
         # For authors
-        record = [score,
-                  author,
-                  title,
-                  link,
-                  date]
+        record = [score, author, title, link, date]
         if auth_counts.get(author, 0) < 2:
             n_table.append([i, ]+record)
             i += 1
@@ -116,6 +111,8 @@ def inference(query, model="miread_contrastive"):
                 auth_counts[author] += 1
 
     return n_table[:10]
+
+
 
 
 if 'button_pressed' not in st.session_state:
@@ -196,7 +193,3 @@ if action_btn:
         st.session_state['button_pressed'] = None
         # You could provide feedback or further instructions to the user here, if needed.
         st.write(f"You selected {st.session_state['button_pressed']} as better.")
-
-
-
-
