@@ -16,6 +16,7 @@ cd arena
 pip install -r requirements.txt
 streamlit run app.py
 ```
+
 ## Creating vector database 
 To build your own vector database based on custom data, you can use this [script](https://github.com/Wanderer-of-the-abyss/nbdt-llm/blob/main/arena/Build_VecStore.ipynb), by default this script creates a vector database by using the [MIReAD_large model](https://huggingface.co/biodatlab/MIReAD-Neuro-Large), but can be changed with all the available models in HugggingFace.
 To change the data source for creating the vector database, just change these sections of the code:
